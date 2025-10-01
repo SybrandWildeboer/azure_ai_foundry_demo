@@ -4,7 +4,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from azure.ai.agents.models import Agent, RunStatus, SubmitToolOutputsAction, ToolOutput
 from azure.ai.projects import AIProjectClient
@@ -104,7 +104,7 @@ class AzureAgentRunner:
             if call.type != "function":
                 continue
             try:
-                arguments = json.loads(call.function.arguments or "{}")
+                arguments = self._parse_function_arguments(call.function.arguments)
             except json.JSONDecodeError as exc:
                 logger.error("Invalid JSON arguments for function %s", call.function.name)
                 raise ValueError("Agent tool arguments were not valid JSON") from exc
@@ -125,6 +125,16 @@ class AzureAgentRunner:
             run_id=run.id,
             tool_outputs=outputs,
         )
+
+    @staticmethod
+    def _parse_function_arguments(raw_arguments: str | None) -> dict[str, Any]:
+        raw = (raw_arguments or "").strip()
+        if not raw:
+            return {}
+        parsed = json.loads(raw)
+        if not isinstance(parsed, dict):
+            raise json.JSONDecodeError("Tool arguments must decode to a JSON object", raw, 0)
+        return parsed
 
     def _collect_messages(self, thread_id: str, run_id: str) -> list[str]:
         messages: list[str] = []

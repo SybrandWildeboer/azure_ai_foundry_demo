@@ -4,32 +4,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from azure_ai_foundry_demo.agents.utils import _normalize_agent_message, message_to_text
-
-
-@pytest.mark.parametrize(
-    "raw,expected",
-    [
-        (
-            "Line one\nline two without punctuation",
-            "Line one line two without punctuation",
-        ),
-        (
-            "**Bold** and *italic* text with \\1 markers",
-            "Bold and italic text with 1 markers",
-        ),
-        (
-            "Bullet:\n- item a\n- item b",
-            "Bullet:\n- item a\n- item b",
-        ),
-        (
-            "First line.\n\nSecond paragraph",
-            "First line.\n Second paragraph",
-        ),
-    ],
-)
-def test_normalize_agent_message(raw: str, expected: str) -> None:
-    assert _normalize_agent_message(raw) == expected
+from azure_ai_foundry_demo.agents.utils import message_to_text
 
 
 @dataclass
@@ -54,9 +29,41 @@ class FakeMessage:
     content: list[FakeContentItem] | None = None
 
 
-def test_message_to_text_prefers_text_messages() -> None:
-    message = FakeMessage(text_messages=[FakeTextMessage(FakeTextValue("**Bold** output"))])
-    assert message_to_text(message) == "Bold output"
+@pytest.mark.parametrize(
+    "payload,expected",
+    [
+        (
+            FakeMessage(text_messages=[FakeTextMessage(FakeTextValue("Line one\nline two"))]),
+            "Line one line two",
+        ),
+        (
+            FakeMessage(text_messages=[FakeTextMessage(FakeTextValue("**Bold** and *italic*\\1"))]),
+            "Bold and italic1",
+        ),
+        (
+            FakeMessage(text_messages=[FakeTextMessage(FakeTextValue("Steps:\n1. Gather data\n2. Summarise"))]),
+            "Steps:\n- Gather data\n- Summarise",
+        ),
+        (
+            FakeMessage(text_messages=[FakeTextMessage(FakeTextValue("Bullet:\n- item a\n- item b"))]),
+            "Bullet:\n- item a\n- item b",
+        ),
+        (
+            FakeMessage(
+                text_messages=[
+                    FakeTextMessage(
+                        FakeTextValue(
+                            "Price snapshot: 518.16USD,Low of 505.04USD on September30,2025"
+                        )
+                    )
+                ]
+            ),
+            "Price snapshot: 518.16 USD, Low of 505.04 USD on September 30, 2025",
+        ),
+    ],
+)
+def test_message_to_text_normalises_formatting(payload: FakeMessage, expected: str) -> None:
+    assert message_to_text(payload) == expected
 
 
 def test_message_to_text_falls_back_to_content_items() -> None:

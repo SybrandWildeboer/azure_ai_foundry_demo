@@ -22,10 +22,10 @@ def build_price_prompt(
         Previous summary: {context_summary}
         Research focus: {focus_line}
 
-        Instructions:
-        1. Call the `lookup_stock_overview` function exactly once to obtain the latest data.
-        2. Report the price, absolute change, percent change, currency, and any metrics returned.
-        3. Use concise bullet points (maximum of four) and avoid speculation.
+    Instructions:
+    - Call the `lookup_stock_overview` function exactly once to obtain the latest data.
+    - Report price, absolute change, percent change, currency, and any returned metrics.
+    - Present your findings as a short bullet list (maximum four items) without speculation.
         """
     ).strip()
 
@@ -44,11 +44,10 @@ def build_news_prompt(
         Previous summary: {summary_line}
         News focus: {focus_line}
 
-        Instructions:
-        1. Query the `search_related_news` function once with a focused search phrase.
-           Include the ticker symbol and any notable catalysts from the focus.
-        2. Return a bullet list (up to five items) highlighting headline, source, and angle.
-        3. Note if no meaningful headlines are returned.
+          Instructions:
+          - Query the `search_related_news` function once with a focused search phrase that mentions the ticker and key catalysts.
+          - Return at most five bullet points, each covering the headline, source, and why it matters.
+          - If no meaningful headlines are available, state that clearly.
         """
     ).strip()
 
@@ -102,13 +101,14 @@ def build_analysis_prompt(
         {structured_payload}
 
         Deliver the final report with the following structure:
-        - Price Snapshot: two sentences highlighting price level and intraday or recent moves.
-        - Key Headlines: bullet list (up to five) with headline and implication.
-        - Trend Assessment: two bullets covering technical/volume trends and risks.
-        - Recommended Next Steps: two actionable bullets for the research team.
+        - Price Snapshot — two sentences highlighting price level and intraday or recent moves.
+        - Key Headlines — bullet list (up to five) summarising headline, source, and implication.
+        - Trend Assessment — exactly two bullet points covering technical or volume trends and key risks.
+        - Recommended Next Steps — two actionable bullet points for the research team.
 
         Keep the tone analytical, reference quantitative figures where available, and avoid
-        repeating the instructions verbatim in the response.
+        repeating the instructions verbatim in the response. Use a blank line between sections and
+        ensure bullet lists use a single style (hyphen prefixes).
         """
     ).strip()
 
